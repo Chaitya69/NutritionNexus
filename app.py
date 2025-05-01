@@ -26,8 +26,4 @@ login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page'
 login_manager.login_message_category = 'info'
 
-# Import models to register user loader with login_manager
-import models  # noqa: F401
-
-# Import routes after app is created to avoid circular imports
-from routes import *  # noqa: F401, E402
+# Note: We're NOT importing models or routes here to avoid circular imports

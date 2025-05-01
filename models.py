@@ -2,7 +2,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from bson.objectid import ObjectId
-import app  # Import app module, not specific variables to avoid circular imports
+from app import mongo, login_manager
 
 class User(UserMixin):
     def __init__(self, username=None, email=None, password_hash=None, _id=None, **kwargs):
@@ -38,9 +38,9 @@ class User(UserMixin):
     
     def save(self):
         if self._id:
-            app.mongo.db.users.update_one({'_id': self._id}, {'$set': self.to_dict()})
+            mongo.db.users.update_one({'_id': self._id}, {'$set': self.to_dict()})
         else:
-            result = app.mongo.db.users.insert_one(self.to_dict())
+            result = mongo.db.users.insert_one(self.to_dict())
             self._id = result.inserted_id
         return self
     
@@ -63,12 +63,12 @@ class User(UserMixin):
     
     @property
     def recommendations(self):
-        return list(app.mongo.db.nutrition_recommendations.find({'user_id': self._id}).sort('created_at', -1))
+        return list(mongo.db.nutrition_recommendations.find({'user_id': self._id}).sort('created_at', -1))
     
     @classmethod
     def get_by_id(cls, user_id):
         try:
-            user_data = app.mongo.db.users.find_one({'_id': ObjectId(user_id)})
+            user_data = mongo.db.users.find_one({'_id': ObjectId(user_id)})
             if user_data:
                 user_data['_id'] = user_data['_id']
                 return cls(**user_data)
@@ -77,7 +77,7 @@ class User(UserMixin):
     
     @classmethod
     def get_by_username(cls, username):
-        user_data = app.mongo.db.users.find_one({'username': username})
+        user_data = mongo.db.users.find_one({'username': username})
         if user_data:
             user_data['_id'] = user_data['_id']
             return cls(**user_data)
@@ -85,7 +85,7 @@ class User(UserMixin):
     
     @classmethod
     def get_by_email(cls, email):
-        user_data = app.mongo.db.users.find_one({'email': email})
+        user_data = mongo.db.users.find_one({'email': email})
         if user_data:
             user_data['_id'] = user_data['_id']
             return cls(**user_data)
@@ -138,15 +138,15 @@ class NutritionRecommendation:
         }
         
         if self._id:
-            app.mongo.db.nutrition_recommendations.update_one({'_id': self._id}, {'$set': data})
+            mongo.db.nutrition_recommendations.update_one({'_id': self._id}, {'$set': data})
         else:
-            result = app.mongo.db.nutrition_recommendations.insert_one(data)
+            result = mongo.db.nutrition_recommendations.insert_one(data)
             self._id = result.inserted_id
         return self
     
     @classmethod
     def get_by_id(cls, rec_id):
-        rec_data = app.mongo.db.nutrition_recommendations.find_one({'_id': ObjectId(rec_id)})
+        rec_data = mongo.db.nutrition_recommendations.find_one({'_id': ObjectId(rec_id)})
         if rec_data:
             rec_data['_id'] = rec_data['_id']
             return cls(**rec_data)
@@ -154,7 +154,7 @@ class NutritionRecommendation:
     
     @classmethod
     def get_by_user_id(cls, user_id, limit=1):
-        recs = app.mongo.db.nutrition_recommendations.find({'user_id': user_id}).sort('created_at', -1).limit(limit)
+        recs = mongo.db.nutrition_recommendations.find({'user_id': user_id}).sort('created_at', -1).limit(limit)
         return [cls(**rec) for rec in recs]
     
     def __repr__(self):
@@ -162,6 +162,6 @@ class NutritionRecommendation:
 
 
 # Setup the user loader for Flask-Login
-@app.login_manager.user_loader
+@login_manager.user_loader
 def load_user(user_id):
     return User.get_by_id(user_id)
