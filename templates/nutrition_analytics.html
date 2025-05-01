@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Nutrition Analytics - NutriGuide{% endblock %}
+
+{% block extra_head %}
+<style>
+    .card-stats {
+        border-radius: 10px;
+        border-left: 4px solid #38b2ac;
+        transition: transform 0.2s;
+    }
+    .card-stats:hover {
+        transform: translateY(-5px);
+    }
+    .stats-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+    .stats-row {
+        margin-bottom: 2rem;
+    }
+    .table-entries td, .table-entries th {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i> Nutrition Analytics</h4>
+    </div>
+    <div class="card-body">
+        <!-- Analytics controls -->
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2">
+                <form method="POST" class="row g-3">
+                    {{ form.csrf_token }}
+                    <div class="col-md-5">
+                        <label class="form-label">{{ form.period.label }}</label>
+                        {{ form.period(class="form-select") }}
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">{{ form.metric.label }}</label>
+                        {{ form.metric(class="form-select") }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row stats-row">
+            <div class="col-md-3">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-primary-light text-primary">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Avg. Daily Calories</p>
+                                <h5 class="mb-0">{{ summary.avg_calories }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-success-light text-success">
+                                <i class="fas fa-drumstick-bite"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Avg. Protein</p>
+                                <h5 class="mb-0">{{ summary.avg_protein }}g</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-info-light text-info">
+                                <i class="fas fa-bread-slice"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Avg. Carbs</p>
+                                <h5 class="mb-0">{{ summary.avg_carbs }}g</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-warning-light text-warning">
+                                <i class="fas fa-cheese"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Avg. Fat</p>
+                                <h5 class="mb-0">{{ summary.avg_fat }}g</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row stats-row">
+            <div class="col-md-4">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-primary-light text-primary">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Avg. Water Intake</p>
+                                <h5 class="mb-0">{{ summary.avg_water }}ml</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-success-light text-success">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Days Tracked</p>
+                                <h5 class="mb-0">{{ summary.days_tracked }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stats">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="stats-icon bg-info-light text-info">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="text-muted mb-1">Completion Rate</p>
+                                <h5 class="mb-0">{{ summary.completion_rate }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Nutrition Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="nutrition-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Entries -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Recent Entries</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-entries">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Calories</th>
+                                <th>Protein</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Water</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.date.strftime('%b %d, %Y') }}</td>
+                                <td>{{ entry.total_calories|int }}</td>
+                                <td>{{ entry.total_protein|round(1) }}g</td>
+                                <td>{{ entry.total_carbs|round(1) }}g</td>
+                                <td>{{ entry.total_fat|round(1) }}g</td>
+                                <td>{{ entry.water_intake|int }}ml</td>
+                                <td>
+                                    <a href="{{ url_for('nutrition_tracker', date=entry.formatted_date) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="alert alert-info mb-0">
+                                        No nutrition entries recorded yet. Start tracking your daily nutrition to see data here.
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the chart
+    const chartData = {{ chart_data|safe }};
+    const ctx = document.getElementById('nutrition-chart').getContext('2d');
+    
+    const nutritionChart = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }
+        }
+    });
+    
+    // Enhance the appearance of the tables
+    const tables = document.querySelectorAll('.table-entries');
+    tables.forEach(table => {
+        // Add hover effect
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.addEventListener('mouseover', function() {
+                this.style.backgroundColor = 'rgba(56, 178, 172, 0.05)';
+            });
+            row.addEventListener('mouseout', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

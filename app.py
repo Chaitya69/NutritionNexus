@@ -30,7 +30,8 @@ except Exception as e:
         def __init__(self):
             self.db = type('obj', (object,), {
                 'users': [],
-                'nutrition_recommendations': []
+                'nutrition_recommendations': [],
+                'nutrition_entries': []
             })
     
     mongo = MemoryStorage()

@@ -1,8 +1,9 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 from app import mongo, login_manager
+import logging
 
 class User(UserMixin):
     def __init__(self, username=None, email=None, password_hash=None, _id=None, **kwargs):
@@ -241,6 +242,247 @@ class NutritionRecommendation:
     
     def __repr__(self):
         return f'<NutritionRecommendation #{self._id} for User {self.user_id}>'
+
+
+class NutritionEntry:
+    def __init__(self, user_id, date=None, meals=None, total_calories=0, total_protein=0, 
+                 total_carbs=0, total_fat=0, total_fiber=0, water_intake=0, notes="", 
+                 _id=None, created_at=None):
+        self._id = _id if _id else None
+        self.user_id = user_id
+        self.date = date if isinstance(date, datetime) else datetime.strptime(date, '%Y-%m-%d') if isinstance(date, str) else datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        self.meals = meals or {
+            "breakfast": [],
+            "lunch": [],
+            "dinner": [],
+            "snacks": []
+        }
+        self.total_calories = total_calories
+        self.total_protein = total_protein
+        self.total_carbs = total_carbs
+        self.total_fat = total_fat
+        self.total_fiber = total_fiber
+        self.water_intake = water_intake
+        self.notes = notes
+        self.created_at = created_at if created_at else datetime.utcnow()
+    
+    @property
+    def id(self):
+        return self._id
+    
+    @property
+    def formatted_date(self):
+        return self.date.strftime('%Y-%m-%d')
+    
+    def add_food_to_meal(self, meal_type, food_data):
+        """Adds a food item to a specific meal and updates totals"""
+        if meal_type not in self.meals:
+            self.meals[meal_type] = []
+        
+        # Add timestamp to track when food was added
+        food_data['timestamp'] = datetime.utcnow()
+        
+        # Add unique ID for the food entry
+        food_data['id'] = str(ObjectId())
+        
+        self.meals[meal_type].append(food_data)
+        
+        # Update totals
+        self.total_calories += float(food_data.get('calories', 0))
+        self.total_protein += float(food_data.get('protein_g', 0))
+        self.total_carbs += float(food_data.get('carbs_g', 0))
+        self.total_fat += float(food_data.get('fat_g', 0))
+        self.total_fiber += float(food_data.get('fiber_g', 0))
+    
+    def remove_food_from_meal(self, meal_type, food_id):
+        """Removes a food item from a meal and updates totals"""
+        if meal_type not in self.meals:
+            return False
+        
+        for i, food in enumerate(self.meals[meal_type]):
+            if food.get('id') == food_id:
+                removed_food = self.meals[meal_type].pop(i)
+                
+                # Update totals by subtracting the removed food
+                self.total_calories -= float(removed_food.get('calories', 0))
+                self.total_protein -= float(removed_food.get('protein_g', 0))
+                self.total_carbs -= float(removed_food.get('carbs_g', 0))
+                self.total_fat -= float(removed_food.get('fat_g', 0))
+                self.total_fiber -= float(removed_food.get('fiber_g', 0))
+                
+                return True
+        
+        return False
+    
+    def update_water_intake(self, amount):
+        """Updates water intake amount in milliliters"""
+        self.water_intake = float(amount)
+    
+    def save(self):
+        data = {
+            'user_id': self.user_id,
+            'date': self.date,
+            'meals': self.meals,
+            'total_calories': self.total_calories,
+            'total_protein': self.total_protein,
+            'total_carbs': self.total_carbs,
+            'total_fat': self.total_fat,
+            'total_fiber': self.total_fiber,
+            'water_intake': self.water_intake,
+            'notes': self.notes,
+            'created_at': self.created_at
+        }
+        
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_entries, 'update_one'):
+            if self._id:
+                # Update in-memory entry
+                for i, entry in enumerate(mongo.db.nutrition_entries):
+                    if entry.get('_id') == self._id:
+                        mongo.db.nutrition_entries[i] = data
+                        mongo.db.nutrition_entries[i]['_id'] = self._id
+                        break
+            else:
+                # Create new entry with ObjectId
+                self._id = ObjectId()
+                data['_id'] = self._id
+                
+                # Initialize the collection if it doesn't exist
+                if not hasattr(mongo.db, 'nutrition_entries'):
+                    mongo.db.nutrition_entries = []
+                
+                mongo.db.nutrition_entries.append(data)
+        else:
+            # Standard MongoDB operations
+            if self._id:
+                mongo.db.nutrition_entries.update_one({'_id': self._id}, {'$set': data})
+            else:
+                result = mongo.db.nutrition_entries.insert_one(data)
+                self._id = result.inserted_id
+        
+        return self
+    
+    @classmethod
+    def get_by_id(cls, entry_id):
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_entries, 'find_one'):
+            # Initialize the collection if it doesn't exist
+            if not hasattr(mongo.db, 'nutrition_entries'):
+                mongo.db.nutrition_entries = []
+                
+            for entry in mongo.db.nutrition_entries:
+                if str(entry.get('_id')) == str(entry_id):
+                    return cls(**entry)
+            return None
+        else:
+            try:
+                entry_data = mongo.db.nutrition_entries.find_one({'_id': ObjectId(entry_id)})
+                if entry_data:
+                    entry_data['_id'] = entry_data['_id'] 
+                    return cls(**entry_data)
+            except Exception as e:
+                logging.error(f"Error fetching nutrition entry by ID: {str(e)}")
+            
+            return None
+    
+    @classmethod
+    def get_by_user_and_date(cls, user_id, date):
+        date_obj = date if isinstance(date, datetime) else datetime.strptime(date, '%Y-%m-%d') if isinstance(date, str) else datetime.utcnow()
+        # Set time to beginning of day
+        start_date = datetime(date_obj.year, date_obj.month, date_obj.day, 0, 0, 0)
+        # Set time to end of day
+        end_date = datetime(date_obj.year, date_obj.month, date_obj.day, 23, 59, 59)
+        
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_entries, 'find_one'):
+            # Initialize the collection if it doesn't exist
+            if not hasattr(mongo.db, 'nutrition_entries'):
+                mongo.db.nutrition_entries = []
+                
+            for entry in mongo.db.nutrition_entries:
+                entry_date = entry.get('date')
+                if (entry.get('user_id') == user_id and 
+                    entry_date >= start_date and entry_date <= end_date):
+                    return cls(**entry)
+            
+            # If no entry exists, create a new one
+            return cls(user_id=user_id, date=start_date)
+        else:
+            try:
+                entry_data = mongo.db.nutrition_entries.find_one({
+                    'user_id': user_id,
+                    'date': {'$gte': start_date, '$lte': end_date}
+                })
+                
+                if entry_data:
+                    entry_data['_id'] = entry_data['_id']
+                    return cls(**entry_data)
+            except Exception as e:
+                logging.error(f"Error fetching nutrition entry by user and date: {str(e)}")
+        
+        # If no entry exists, create a new one
+        return cls(user_id=user_id, date=start_date)
+    
+    @classmethod
+    def get_user_entries(cls, user_id, days=7):
+        """Get user's nutrition entries for the last X days"""
+        entries = []
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_entries, 'find'):
+            # Initialize the collection if it doesn't exist
+            if not hasattr(mongo.db, 'nutrition_entries'):
+                mongo.db.nutrition_entries = []
+                
+            for entry in mongo.db.nutrition_entries:
+                entry_date = entry.get('date')
+                if (entry.get('user_id') == user_id and 
+                    entry_date >= start_date and entry_date <= end_date):
+                    entries.append(cls(**entry))
+        else:
+            try:
+                results = mongo.db.nutrition_entries.find({
+                    'user_id': user_id,
+                    'date': {'$gte': start_date, '$lte': end_date}
+                }).sort('date', -1)
+                
+                for entry in results:
+                    entry['_id'] = entry['_id']
+                    entries.append(cls(**entry))
+            except Exception as e:
+                logging.error(f"Error fetching nutrition entries: {str(e)}")
+        
+        return sorted(entries, key=lambda x: x.date, reverse=True)
+    
+    def get_macro_percentages(self):
+        """Calculate macronutrient percentages"""
+        total_macros = (self.total_protein * 4) + (self.total_carbs * 4) + (self.total_fat * 9)
+        
+        if total_macros == 0:
+            return {'protein': 0, 'carbs': 0, 'fat': 0}
+        
+        protein_pct = round((self.total_protein * 4 / total_macros) * 100)
+        carbs_pct = round((self.total_carbs * 4 / total_macros) * 100)
+        fat_pct = round((self.total_fat * 9 / total_macros) * 100)
+        
+        # Ensure percentages add up to 100%
+        total = protein_pct + carbs_pct + fat_pct
+        if total != 100:
+            # Adjust the largest value to make sum exactly 100
+            diff = 100 - total
+            if protein_pct >= carbs_pct and protein_pct >= fat_pct:
+                protein_pct += diff
+            elif carbs_pct >= protein_pct and carbs_pct >= fat_pct:
+                carbs_pct += diff
+            else:
+                fat_pct += diff
+        
+        return {'protein': protein_pct, 'carbs': carbs_pct, 'fat': fat_pct}
+    
+    def __repr__(self):
+        return f'<NutritionEntry {self.id} {self.formatted_date}>'
 
 
 # Setup the user loader for Flask-Login
