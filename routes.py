@@ -149,7 +149,25 @@ def api_food_nutrition():
     
     try:
         result = get_food_nutrition(food_query)
-        return result
+        
+        # Add a note if the response includes it
+        if 'note' in result:
+            result_with_note = {**result}
+            app.logger.info(f"Returning approximate nutrition data for: {food_query}")
+        else:
+            result_with_note = {**result}
+            
+        return result_with_note
     except Exception as e:
-        logging.error(f"Error retrieving nutrition data: {str(e)}")
-        return {'error': 'Failed to retrieve nutrition data'}, 500
+        app.logger.error(f"Error retrieving nutrition data: {str(e)}")
+        # Return a user-friendly error response
+        return {
+            'error': 'Unable to retrieve nutrition data', 
+            'food_name': food_query.capitalize(),
+            'calories': 0,
+            'protein_g': 0,
+            'carbs_g': 0,
+            'fat_g': 0,
+            'fiber_g': 0,
+            'note': 'Data unavailable'
+        }

@@ -94,7 +94,7 @@ function setupNutritionRecommendations() {
                 }
                 
                 // Display nutrition information
-                document.getElementById('food-search-results').innerHTML = `
+                let nutritionHTML = `
                     <div class="card">
                         <div class="card-header bg-primary text-white">
                             Nutrition Information for ${data.food_name}
@@ -121,10 +121,23 @@ function setupNutritionRecommendations() {
                                     Fiber
                                     <span class="badge bg-secondary rounded-pill">${data.fiber_g}g</span>
                                 </li>
-                            </ul>
+                            </ul>`;
+                            
+                // Add a note if one is provided
+                if (data.note) {
+                    nutritionHTML += `
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i> ${data.note}
+                        </div>
+                    `;
+                }
+                
+                nutritionHTML += `
                         </div>
                     </div>
                 `;
+                
+                document.getElementById('food-search-results').innerHTML = nutritionHTML;
             } catch (error) {
                 console.error('Error fetching nutrition data:', error);
                 document.getElementById('food-search-results').innerHTML = `
