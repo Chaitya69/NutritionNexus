@@ -37,11 +37,28 @@ class User(UserMixin):
         return check_password_hash(self.password_hash, password)
     
     def save(self):
-        if self._id:
-            mongo.db.users.update_one({'_id': self._id}, {'$set': self.to_dict()})
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.users, 'update_one'):
+            if self._id:
+                # Update in-memory user
+                for i, user in enumerate(mongo.db.users):
+                    if user.get('_id') == self._id:
+                        mongo.db.users[i] = self.to_dict()
+                        mongo.db.users[i]['_id'] = self._id
+                        break
+            else:
+                # Create new user with ObjectId
+                self._id = ObjectId()
+                user_dict = self.to_dict()
+                user_dict['_id'] = self._id
+                mongo.db.users.append(user_dict)
         else:
-            result = mongo.db.users.insert_one(self.to_dict())
-            self._id = result.inserted_id
+            # Standard MongoDB operations
+            if self._id:
+                mongo.db.users.update_one({'_id': self._id}, {'$set': self.to_dict()})
+            else:
+                result = mongo.db.users.insert_one(self.to_dict())
+                self._id = result.inserted_id
         return self
     
     def to_dict(self):
@@ -63,33 +80,64 @@ class User(UserMixin):
     
     @property
     def recommendations(self):
-        return list(mongo.db.nutrition_recommendations.find({'user_id': self._id}).sort('created_at', -1))
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_recommendations, 'find'):
+            # Filter recommendations for this user and sort by created_at descending
+            return sorted(
+                [rec for rec in mongo.db.nutrition_recommendations if rec.get('user_id') == self._id],
+                key=lambda x: x.get('created_at', datetime.utcnow()),
+                reverse=True
+            )
+        else:
+            return list(mongo.db.nutrition_recommendations.find({'user_id': self._id}).sort('created_at', -1))
     
     @classmethod
     def get_by_id(cls, user_id):
         try:
-            user_data = mongo.db.users.find_one({'_id': ObjectId(user_id)})
-            if user_data:
-                user_data['_id'] = user_data['_id']
-                return cls(**user_data)
-        except Exception:
+            # Check if mongo is using in-memory storage
+            if not hasattr(mongo.db.users, 'find_one'):
+                for user in mongo.db.users:
+                    if str(user.get('_id')) == str(user_id):
+                        return cls(**user)
+                return None
+            else:
+                user_data = mongo.db.users.find_one({'_id': ObjectId(user_id)})
+                if user_data:
+                    user_data['_id'] = user_data['_id']
+                    return cls(**user_data)
+        except Exception as e:
+            print(f"Error in get_by_id: {str(e)}")
             return None
     
     @classmethod
     def get_by_username(cls, username):
-        user_data = mongo.db.users.find_one({'username': username})
-        if user_data:
-            user_data['_id'] = user_data['_id']
-            return cls(**user_data)
-        return None
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.users, 'find_one'):
+            for user in mongo.db.users:
+                if user.get('username') == username:
+                    return cls(**user)
+            return None
+        else:
+            user_data = mongo.db.users.find_one({'username': username})
+            if user_data:
+                user_data['_id'] = user_data['_id']
+                return cls(**user_data)
+            return None
     
     @classmethod
     def get_by_email(cls, email):
-        user_data = mongo.db.users.find_one({'email': email})
-        if user_data:
-            user_data['_id'] = user_data['_id']
-            return cls(**user_data)
-        return None
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.users, 'find_one'):
+            for user in mongo.db.users:
+                if user.get('email') == email:
+                    return cls(**user)
+            return None
+        else:
+            user_data = mongo.db.users.find_one({'email': email})
+            if user_data:
+                user_data['_id'] = user_data['_id']
+                return cls(**user_data)
+            return None
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -137,25 +185,59 @@ class NutritionRecommendation:
             'additional_notes': self.additional_notes
         }
         
-        if self._id:
-            mongo.db.nutrition_recommendations.update_one({'_id': self._id}, {'$set': data})
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_recommendations, 'update_one'):
+            if self._id:
+                # Update in-memory recommendation
+                for i, rec in enumerate(mongo.db.nutrition_recommendations):
+                    if rec.get('_id') == self._id:
+                        mongo.db.nutrition_recommendations[i] = data
+                        mongo.db.nutrition_recommendations[i]['_id'] = self._id
+                        break
+            else:
+                # Create new recommendation with ObjectId
+                self._id = ObjectId()
+                data['_id'] = self._id
+                mongo.db.nutrition_recommendations.append(data)
         else:
-            result = mongo.db.nutrition_recommendations.insert_one(data)
-            self._id = result.inserted_id
+            # Standard MongoDB operations
+            if self._id:
+                mongo.db.nutrition_recommendations.update_one({'_id': self._id}, {'$set': data})
+            else:
+                result = mongo.db.nutrition_recommendations.insert_one(data)
+                self._id = result.inserted_id
         return self
     
     @classmethod
     def get_by_id(cls, rec_id):
-        rec_data = mongo.db.nutrition_recommendations.find_one({'_id': ObjectId(rec_id)})
-        if rec_data:
-            rec_data['_id'] = rec_data['_id']
-            return cls(**rec_data)
-        return None
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_recommendations, 'find_one'):
+            for rec in mongo.db.nutrition_recommendations:
+                if str(rec.get('_id')) == str(rec_id):
+                    return cls(**rec)
+            return None
+        else:
+            rec_data = mongo.db.nutrition_recommendations.find_one({'_id': ObjectId(rec_id)})
+            if rec_data:
+                rec_data['_id'] = rec_data['_id']
+                return cls(**rec_data)
+            return None
     
     @classmethod
     def get_by_user_id(cls, user_id, limit=1):
-        recs = mongo.db.nutrition_recommendations.find({'user_id': user_id}).sort('created_at', -1).limit(limit)
-        return [cls(**rec) for rec in recs]
+        # Check if mongo is using in-memory storage
+        if not hasattr(mongo.db.nutrition_recommendations, 'find'):
+            # Filter recommendations for this user
+            user_recs = [rec for rec in mongo.db.nutrition_recommendations 
+                         if str(rec.get('user_id')) == str(user_id)]
+            # Sort by created_at (descending)
+            user_recs.sort(key=lambda x: x.get('created_at', datetime.utcnow()), reverse=True)
+            # Apply limit
+            user_recs = user_recs[:limit]
+            return [cls(**rec) for rec in user_recs]
+        else:
+            recs = mongo.db.nutrition_recommendations.find({'user_id': user_id}).sort('created_at', -1).limit(limit)
+            return [cls(**rec) for rec in recs]
     
     def __repr__(self):
         return f'<NutritionRecommendation #{self._id} for User {self.user_id}>'

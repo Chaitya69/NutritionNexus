@@ -17,7 +17,23 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for
 
 # configure MongoDB
 app.config["MONGO_URI"] = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/nutrition_app")
-mongo = PyMongo(app)
+try:
+    mongo = PyMongo(app)
+    mongo.db.users.find_one({})  # Test the connection
+    app.logger.info("MongoDB connection established successfully")
+except Exception as e:
+    app.logger.error(f"MongoDB connection error: {str(e)}")
+    app.logger.warning("Using in-memory data storage as MongoDB fallback")
+    
+    # Create in-memory storage for development/testing
+    class MemoryStorage:
+        def __init__(self):
+            self.db = type('obj', (object,), {
+                'users': [],
+                'nutrition_recommendations': []
+            })
+    
+    mongo = MemoryStorage()
 
 # Setup LoginManager
 login_manager = LoginManager()
