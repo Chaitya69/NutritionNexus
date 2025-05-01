@@ -237,7 +237,8 @@ def nutrition_tracker():
         recommendation=recommendation,
         progress=progress,
         macro_percentages=macro_percentages,
-        selected_date=selected_date
+        selected_date=selected_date,
+        timedelta=timedelta
     )
 
 
@@ -450,7 +451,8 @@ def nutrition_analytics():
         chart_data=chart_json,
         summary=summary,
         entries=entries,
-        recommendation=recommendation
+        recommendation=recommendation,
+        timedelta=timedelta
     )
 
 
