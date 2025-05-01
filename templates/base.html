@@ -45,27 +45,10 @@
                             <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                         </a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'nutrition' in request.path %}active{% endif %}" href="#" id="nutritionDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-utensils me-1"></i> Nutrition
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('nutrition_recommendation') %}active{% endif %}" href="{{ url_for('nutrition_recommendation') }}">
+                            <i class="fas fa-utensils me-1"></i> Nutrition Guide
                         </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item {% if request.path == url_for('nutrition_recommendation') %}active{% endif %}" href="{{ url_for('nutrition_recommendation') }}">
-                                    <i class="fas fa-clipboard-list me-2"></i> Recommendations
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item {% if request.path == url_for('nutrition_tracker') %}active{% endif %}" href="{{ url_for('nutrition_tracker') }}">
-                                    <i class="fas fa-calendar-day me-2"></i> Daily Tracker
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item {% if request.path == url_for('nutrition_analytics') %}active{% endif %}" href="{{ url_for('nutrition_analytics') }}">
-                                    <i class="fas fa-chart-line me-2"></i> Analytics
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                     {% endif %}
                 </ul>
@@ -137,9 +120,7 @@
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('dashboard') }}">Dashboard</a>
                     <a href="{{ url_for('profile') }}">Profile</a>
-                    <a href="{{ url_for('nutrition_recommendation') }}">Recommendations</a>
-                    <a href="{{ url_for('nutrition_tracker') }}">Tracker</a>
-                    <a href="{{ url_for('nutrition_analytics') }}">Analytics</a>
+                    <a href="{{ url_for('nutrition_recommendation') }}">Nutrition Guide</a>
                     {% else %}
                     <a href="{{ url_for('login') }}">Login</a>
                     <a href="{{ url_for('register') }}">Register</a>

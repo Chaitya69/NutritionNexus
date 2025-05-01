@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, FloatField, IntegerField, TextAreaField, DateField, HiddenField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, FloatField, IntegerField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, ValidationError
-from datetime import datetime
 from models import User
 
 
@@ -88,45 +87,4 @@ class NutritionQueryForm(FlaskForm):
     submit = SubmitField('Get Recommendations')
 
 
-class NutritionEntryForm(FlaskForm):
-    date = DateField('Date', validators=[DataRequired()], 
-                    default=datetime.today)
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=500)])
-    water_intake = FloatField('Water Intake (ml)', validators=[Optional()], 
-                             default=0)
-    submit = SubmitField('Save Entry')
 
-
-class FoodEntryForm(FlaskForm):
-    meal_type = SelectField('Meal', choices=[
-        ('breakfast', 'Breakfast'),
-        ('lunch', 'Lunch'),
-        ('dinner', 'Dinner'),
-        ('snacks', 'Snacks')
-    ], validators=[DataRequired()])
-    food_query = StringField('Food Item', validators=[DataRequired(), Length(min=2, max=100)])
-    quantity = FloatField('Quantity', validators=[DataRequired()], default=1.0)
-    entry_id = HiddenField('Entry ID')
-    submit = SubmitField('Add Food')
-
-
-class NutritionDateSelectForm(FlaskForm):
-    date = DateField('Select Date', validators=[DataRequired()], 
-                    default=datetime.today)
-    submit = SubmitField('Go')
-
-
-class NutritionAnalyticsForm(FlaskForm):
-    period = SelectField('Time Period', choices=[
-        ('7', 'Last 7 days'),
-        ('14', 'Last 14 days'),
-        ('30', 'Last 30 days'),
-        ('90', 'Last 3 months')
-    ], validators=[DataRequired()], default='7')
-    metric = SelectField('Metric to View', choices=[
-        ('calories', 'Daily Calories'),
-        ('macros', 'Macronutrient Balance'),
-        ('water', 'Water Intake'),
-        ('complete', 'Completion Rate')
-    ], validators=[DataRequired()], default='calories')
-    submit = SubmitField('Update Chart')
