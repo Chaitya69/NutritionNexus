@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Nutrition Recommendations - NutriGuide{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-blue text-white">
+                <h2 class="h5 mb-0">Get Personalized Recommendations</h2>
+            </div>
+            <div class="card-body">
+                <p>Fill out the form below to get personalized nutrition recommendations based on your preferences and goals.</p>
+                
+                <form method="POST" action="{{ url_for('nutrition_recommendation') }}" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="diet_type" class="form-label">Diet Type</label>
+                        {{ form.diet_type(class="form-select", id="diet_type") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.diet_type.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">Select the diet type you want to follow.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="health_focus" class="form-label">Health Focus</label>
+                        {{ form.health_focus(class="form-select", id="health_focus") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.health_focus.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">What is your primary health goal?</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+                
+                <!-- Diet information will be displayed here via JavaScript -->
+                <div id="diet-info" class="mt-4"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-green text-white">
+                <h2 class="h5 mb-0">Your Profile Stats</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-weight me-2 text-green"></i>Weight</span>
+                        <span>{{ current_user.weight|default('Not set', true) }} {% if current_user.weight %}kg{% endif %}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-ruler-vertical me-2 text-green"></i>Height</span>
+                        <span>{{ current_user.height|default('Not set', true) }} {% if current_user.height %}cm{% endif %}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-running me-2 text-green"></i>Activity Level</span>
+                        <span>{{ current_user.activity_level|title|replace('_', ' ') if current_user.activity_level else 'Not set' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-utensils me-2 text-green"></i>Diet Type</span>
+                        <span>{{ current_user.diet_type|title|replace('_', ' ') if current_user.diet_type else 'Not set' }}</span>
+                    </li>
+                </ul>
+                
+                {% if not current_user.weight or not current_user.height or not current_user.age or not current_user.gender or not current_user.activity_level %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span>Complete your profile for more accurate recommendations.</span>
+                    <div class="mt-2">
+                        <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-warning">
+                            Update Profile
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-green text-white">
+                <h2 class="h5 mb-0">Your Nutrition Recommendation</h2>
+            </div>
+            {% if recommendation %}
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span>Recommendation created on {{ recommendation.created_at.strftime('%B %d, %Y at %H:%M') }}</span>
+                </div>
+                
+                <h3 class="h5 text-green mb-3">Daily Nutritional Needs</h3>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h4 class="h6 text-blue">Daily Calories</h4>
+                                <div class="display-5 text-green">{{ recommendation.daily_calories }}</div>
+                                <div class="text-muted">kcal</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h4 class="h6 text-blue text-center mb-3">Macronutrients</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Protein</span>
+                                        <span class="badge rounded-pill bg-primary">{{ recommendation.protein }}g</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Carbohydrates</span>
+                                        <span class="badge rounded-pill bg-success">{{ recommendation.carbs }}g</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Fats</span>
+                                        <span class="badge rounded-pill bg-info">{{ recommendation.fats }}g</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="h5 text-green mb-3">Recommended Meal Plan</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="meal-suggestion">
+                            <h4 class="h6"><i class="fas fa-sun me-2 text-warning"></i>Breakfast</h4>
+                            <p>{{ recommendation.breakfast_suggestion }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="meal-suggestion">
+                            <h4 class="h6"><i class="fas fa-cloud-sun me-2 text-info"></i>Lunch</h4>
+                            <p>{{ recommendation.lunch_suggestion }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="meal-suggestion">
+                            <h4 class="h6"><i class="fas fa-moon me-2 text-primary"></i>Dinner</h4>
+                            <p>{{ recommendation.dinner_suggestion }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="meal-suggestion">
+                            <h4 class="h6"><i class="fas fa-apple-alt me-2 text-danger"></i>Snacks</h4>
+                            <p>{{ recommendation.snacks_suggestion }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if recommendation.additional_notes %}
+                <div class="mt-4">
+                    <h3 class="h5 text-green mb-3">Additional Notes</h3>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-0">{{ recommendation.additional_notes|nl2br }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        These recommendations are based on your profile information and dietary preferences.
+                    </p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <form method="POST" action="{{ url_for('nutrition_recommendation') }}">
+                    {{ form.hidden_tag() }}
+                    {{ form.diet_type(value=recommendation.diet_type, hidden="hidden") }}
+                    {{ form.health_focus(value="general", hidden="hidden") }}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sync me-2"></i>Update Recommendation
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="card-body text-center py-5">
+                <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+                <h3 class="h5 text-muted">No nutrition recommendations yet</h3>
+                <p class="mb-4">Fill out the form on the left to get your personalized nutrition plan.</p>
+                <div class="alert alert-info d-inline-block mx-auto">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>Make sure your profile is complete for the most accurate recommendations.</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize diet information based on initial selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const dietTypeSelect = document.getElementById('diet_type');
+        if (dietTypeSelect && dietTypeSelect.value) {
+            updateDietRecommendationInfo(dietTypeSelect.value);
+        }
+    });
+</script>
+{% endblock %}

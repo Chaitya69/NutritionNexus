@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NutriGuide{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="welcome-heading">Welcome to Your Nutrition Dashboard</h1>
+    <p class="welcome-description">
+        Here you can access your personalized nutrition recommendations, track your progress, and explore dietary resources 
+        tailored to your preferences and health goals.
+    </p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <i class="fas fa-fire stat-icon"></i>
+            <div class="stat-number">
+                {% if current_user.recommendations and current_user.recommendations|length > 0 %}
+                    {{ current_user.recommendations[-1].daily_calories }}
+                {% else %}
+                    --
+                {% endif %}
+            </div>
+            <div class="stat-label">Recommended Daily Calories</div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <i class="fas fa-drumstick-bite stat-icon"></i>
+            <div class="stat-number">
+                {% if current_user.diet_type %}
+                    {{ current_user.diet_type|title|replace('_', ' ') }}
+                {% else %}
+                    Not Set
+                {% endif %}
+            </div>
+            <div class="stat-label">Current Diet Type</div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <i class="fas fa-utensils stat-icon"></i>
+            <div class="stat-number">
+                {{ current_user.recommendations|length }}
+            </div>
+            <div class="stat-label">Nutrition Plans Created</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-blue text-white">
+                <h2 class="h5 mb-0">Your Nutrition Journey</h2>
+            </div>
+            <div class="card-body">
+                {% if current_user.recommendations and current_user.recommendations|length > 0 %}
+                    {% set latest_rec = current_user.recommendations[-1] %}
+                    <h3 class="h5 text-green">Latest Recommendation ({{ latest_rec.created_at.strftime('%B %d, %Y') }})</h3>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4 class="h6 text-blue">Daily Macronutrient Distribution</h4>
+                            <div class="macro-chart mb-3">
+                                <div class="macro-bar protein-bar" style="width: {{ (latest_rec.protein * 4 / latest_rec.daily_calories * 100)|round }}%">
+                                    Protein
+                                </div>
+                                <div class="macro-bar carbs-bar" style="width: {{ (latest_rec.carbs * 4 / latest_rec.daily_calories * 100)|round }}%">
+                                    Carbs
+                                </div>
+                                <div class="macro-bar fats-bar" style="width: {{ (latest_rec.fats * 9 / latest_rec.daily_calories * 100)|round }}%">
+                                    Fats
+                                </div>
+                            </div>
+                            <div class="small text-muted mb-4">
+                                Protein: {{ latest_rec.protein }}g ({{ (latest_rec.protein * 4 / latest_rec.daily_calories * 100)|round }}%)<br>
+                                Carbs: {{ latest_rec.carbs }}g ({{ (latest_rec.carbs * 4 / latest_rec.daily_calories * 100)|round }}%)<br>
+                                Fats: {{ latest_rec.fats }}g ({{ (latest_rec.fats * 9 / latest_rec.daily_calories * 100)|round }}%)
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="macro-distribution-chart" height="200" 
+                                    data-protein="{{ (latest_rec.protein * 4 / latest_rec.daily_calories * 100)|round }}"
+                                    data-carbs="{{ (latest_rec.carbs * 4 / latest_rec.daily_calories * 100)|round }}"
+                                    data-fats="{{ (latest_rec.fats * 9 / latest_rec.daily_calories * 100)|round }}"></canvas>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h4 class="h6 text-green">Meal Suggestions</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="meal-suggestion">
+                                <h5 class="h6 text-blue"><i class="fas fa-sun me-2"></i>Breakfast</h5>
+                                <p class="mb-0">{{ latest_rec.breakfast_suggestion }}</p>
+                            </div>
+                            <div class="meal-suggestion">
+                                <h5 class="h6 text-blue"><i class="fas fa-coffee me-2"></i>Snacks</h5>
+                                <p class="mb-0">{{ latest_rec.snacks_suggestion }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="meal-suggestion">
+                                <h5 class="h6 text-blue"><i class="fas fa-cloud-sun me-2"></i>Lunch</h5>
+                                <p class="mb-0">{{ latest_rec.lunch_suggestion }}</p>
+                            </div>
+                            <div class="meal-suggestion">
+                                <h5 class="h6 text-blue"><i class="fas fa-moon me-2"></i>Dinner</h5>
+                                <p class="mb-0">{{ latest_rec.dinner_suggestion }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if latest_rec.additional_notes %}
+                    <div class="alert alert-info mt-3">
+                        <h5 class="h6"><i class="fas fa-info-circle me-2"></i>Additional Notes</h5>
+                        <p class="mb-0">{{ latest_rec.additional_notes }}</p>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+                        <h3 class="h5 text-muted">No nutrition recommendations yet</h3>
+                        <p>Get started by completing your profile and requesting personalized nutrition recommendations.</p>
+                        <a href="{{ url_for('nutrition_recommendation') }}" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus-circle me-2"></i>Get Recommendations
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('nutrition_recommendation') }}" class="btn btn-success">
+                    <i class="fas fa-sync me-2"></i>Update Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-green text-white">
+                <h2 class="h5 mb-0">Your Profile Overview</h2>
+            </div>
+            <div class="card-body">
+                <div class="profile-avatar mb-3">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="h5 text-center mb-4">{{ current_user.username }}</h3>
+                
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user me-2 text-green"></i>Name</span>
+                        <span class="text-muted">{{ current_user.name or 'Not set' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-birthday-cake me-2 text-green"></i>Age</span>
+                        <span class="text-muted">{{ current_user.age or 'Not set' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-weight me-2 text-green"></i>Weight</span>
+                        <span class="text-muted">{{ current_user.weight|default('Not set', true) }} {% if current_user.weight %}kg{% endif %}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-ruler-vertical me-2 text-green"></i>Height</span>
+                        <span class="text-muted">{{ current_user.height|default('Not set', true) }} {% if current_user.height %}cm{% endif %}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-running me-2 text-green"></i>Activity Level</span>
+                        <span class="text-muted">{{ current_user.activity_level|title|replace('_', ' ') if current_user.activity_level else 'Not set' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-bullseye me-2 text-green"></i>Health Goals</span>
+                        <span class="text-muted">{{ current_user.health_goals or 'Not set' }}</span>
+                    </li>
+                </ul>
+                
+                <div class="d-grid">
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-blue text-white">
+                <h2 class="h5 mb-0">Quick Actions</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('nutrition_recommendation') }}" class="btn btn-success">
+                        <i class="fas fa-utensils me-2"></i>Get Nutrition Recommendations
+                    </a>
+                    <a href="#" class="btn btn-outline-primary" id="food-search-btn" data-bs-toggle="modal" data-bs-target="#foodSearchModal">
+                        <i class="fas fa-search me-2"></i>Search Food Nutrition
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Food Search Modal -->
+<div class="modal fade" id="foodSearchModal" tabindex="-1" aria-labelledby="foodSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-blue text-white">
+                <h5 class="modal-title" id="foodSearchModalLabel">Search Food Nutrition</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="food-search-form">
+                    <div class="mb-3">
+                        <label for="food-query" class="form-label">Search for a food item</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="food-query" placeholder="e.g., apple, chicken breast, etc.">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Enter a food item to see its nutritional information</div>
+                    </div>
+                </form>
+                
+                <div id="food-search-results" class="mt-4">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

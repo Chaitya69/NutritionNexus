@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}NutriGuide - Nutrition Awareness and Recommendation System{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="welcome-heading">Welcome to NutriGuide</h1>
+    <p class="welcome-description">
+        Your personal nutrition awareness and recommendation system designed to help you make informed dietary choices
+        and improve your overall well-being through personalized nutrition guidance.
+    </p>
+    {% if not current_user.is_authenticated %}
+    <div class="mt-4">
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
+            <i class="fas fa-user-plus me-2"></i>Get Started
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+        </a>
+    </div>
+    {% else %}
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-2">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('nutrition_recommendation') }}" class="btn btn-success btn-lg">
+            <i class="fas fa-utensils me-2"></i>Get Recommendations
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h2 class="mb-3">About NutriGuide</h2>
+                <p class="lead">
+                    NutriGuide is a comprehensive nutrition awareness platform that helps you understand your dietary needs 
+                    and provides personalized recommendations based on your health goals, preferences, and lifestyle.
+                </p>
+                <p>
+                    Whether you're looking to improve your overall health, manage weight, boost energy levels, or address
+                    specific dietary concerns, our system can provide you with tailored guidance to help you make better food choices.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="text-center mb-4">Key Features</h2>
+
+<div class="features-section">
+    <div class="feature-card">
+        <i class="fas fa-user-cog"></i>
+        <h3>Personalized Recommendations</h3>
+        <p>Get nutrition recommendations tailored to your specific needs, preferences, and health goals.</p>
+    </div>
+    
+    <div class="feature-card">
+        <i class="fas fa-utensils"></i>
+        <h3>Dietary Guidance</h3>
+        <p>Access information about different diet types and find the one that best suits your lifestyle.</p>
+    </div>
+    
+    <div class="feature-card">
+        <i class="fas fa-chart-bar"></i>
+        <h3>Nutrition Tracking</h3>
+        <p>Understand your nutritional intake and track your progress toward your health goals.</p>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="feature-card">
+        <i class="fas fa-apple-alt"></i>
+        <h3>Food Information</h3>
+        <p>Discover nutritional content of various foods to make informed dietary choices.</p>
+    </div>
+    
+    <div class="feature-card">
+        <i class="fas fa-heartbeat"></i>
+        <h3>Health Optimization</h3>
+        <p>Optimize your nutrition to improve overall health and well-being.</p>
+    </div>
+    
+    <div class="feature-card">
+        <i class="fas fa-book-open"></i>
+        <h3>Educational Resources</h3>
+        <p>Access valuable resources to enhance your nutrition knowledge.</p>
+    </div>
+</div>
+
+<div class="text-center mt-5 mb-5">
+    <h2 class="mb-4">Ready to improve your nutrition?</h2>
+    {% if not current_user.is_authenticated %}
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-user-plus me-2"></i>Create Your Account
+    </a>
+    {% else %}
+    <a href="{{ url_for('nutrition_recommendation') }}" class="btn btn-success btn-lg">
+        <i class="fas fa-utensils me-2"></i>Get Your Personalized Plan
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
