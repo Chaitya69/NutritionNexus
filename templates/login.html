@@ -46,6 +46,7 @@
         </div>
     </form>
 
+    {% if config.get('FIREBASE_API_KEY') %}
     <div class="mt-4 text-center">
         <p class="text-muted">Or sign in with</p>
         <button id="login-with-google" class="btn btn-outline-secondary">
@@ -53,6 +54,7 @@
             Google
         </button>
     </div>
+    {% endif %}
 
     <div class="auth-footer mt-4">
         <p>Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>

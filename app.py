@@ -15,6 +15,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
+# Add Firebase configuration to app.config for templates
+app.config['FIREBASE_API_KEY'] = os.environ.get('FIREBASE_API_KEY')
+app.config['FIREBASE_APP_ID'] = os.environ.get('FIREBASE_APP_ID')
+app.config['FIREBASE_PROJECT_ID'] = os.environ.get('FIREBASE_PROJECT_ID')
+
 # configure MongoDB
 app.config["MONGO_URI"] = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/nutrition_app")
 try:
