@@ -5,6 +5,14 @@ from bson.objectid import ObjectId
 from app import mongo, login_manager
 import logging
 
+# Import Firebase configuration
+try:
+    from firebase_config import get_firebase_config, check_firebase_config
+    FIREBASE_ENABLED = check_firebase_config()
+except Exception as e:
+    logging.error(f"Firebase import error: {str(e)}")
+    FIREBASE_ENABLED = False
+
 class User(UserMixin):
     def __init__(self, username=None, email=None, password_hash=None, _id=None, **kwargs):
         self._id = _id if _id else None
@@ -36,6 +44,38 @@ class User(UserMixin):
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    @classmethod
+    def create_firebase_user(cls, firebase_user_data):
+        """Create or get a user from Firebase authentication data"""
+        if not firebase_user_data or not firebase_user_data.get('email'):
+            return None
+            
+        # Check if user exists
+        user = cls.get_by_email(firebase_user_data.get('email'))
+        
+        if user:
+            # User exists, update Firebase info if needed
+            return user
+        else:
+            # Create new user
+            username = firebase_user_data.get('displayName', '').lower().replace(' ', '_') or f"user_{ObjectId()}"
+            
+            # Make sure username is unique
+            existing_user = cls.get_by_username(username)
+            if existing_user:
+                username = f"{username}_{ObjectId()}"
+                
+            # Create user with Firebase data
+            user = cls(
+                username=username,
+                email=firebase_user_data.get('email'),
+                password_hash='firebase_auth',  # Placeholder, as auth is handled by Firebase
+                name=firebase_user_data.get('displayName'),
+                # Can add more firebase user data here
+            )
+            user.save()
+            return user
     
     def save(self):
         # Check if mongo is using in-memory storage
