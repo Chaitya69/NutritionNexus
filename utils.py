@@ -178,11 +178,12 @@ def generate_nutrition_recommendation(user, diet_type, health_focus):
     return recommendation
 
 def get_food_nutrition(query):
-    """Get nutrition information for a food item using the Nutritionix API"""
-    # Store a dictionary of common foods and their nutrition values
+    """Get nutrition information for a food item using an extensive database of common foods"""
+    # Store a dictionary of common foods and their accurate nutrition values (per 100g unless specified)
     common_foods = {
+        # Fruits
         'apple': {
-            'food_name': 'Apple',
+            'food_name': 'Apple (1 medium)',
             'calories': 95,
             'protein_g': 0.5,
             'carbs_g': 25.1,
@@ -190,83 +191,463 @@ def get_food_nutrition(query):
             'fiber_g': 4.4
         },
         'banana': {
-            'food_name': 'Banana',
+            'food_name': 'Banana (1 medium)',
             'calories': 105,
             'protein_g': 1.3,
             'carbs_g': 27.0,
             'fat_g': 0.4,
             'fiber_g': 3.1
         },
+        'orange': {
+            'food_name': 'Orange (1 medium)',
+            'calories': 62,
+            'protein_g': 1.2,
+            'carbs_g': 15.4,
+            'fat_g': 0.2,
+            'fiber_g': 3.1
+        },
+        'strawberry': {
+            'food_name': 'Strawberries (1 cup)',
+            'calories': 49,
+            'protein_g': 1.0,
+            'carbs_g': 11.7,
+            'fat_g': 0.5,
+            'fiber_g': 3.0
+        },
+        'blueberry': {
+            'food_name': 'Blueberries (1 cup)',
+            'calories': 84,
+            'protein_g': 1.1,
+            'carbs_g': 21.5,
+            'fat_g': 0.5,
+            'fiber_g': 3.6
+        },
+        'grape': {
+            'food_name': 'Grapes (1 cup)',
+            'calories': 104,
+            'protein_g': 1.1,
+            'carbs_g': 27.3,
+            'fat_g': 0.2,
+            'fiber_g': 1.4
+        },
+        'watermelon': {
+            'food_name': 'Watermelon (1 cup, diced)',
+            'calories': 46,
+            'protein_g': 0.9,
+            'carbs_g': 11.5,
+            'fat_g': 0.2,
+            'fiber_g': 0.6
+        },
+        'pineapple': {
+            'food_name': 'Pineapple (1 cup, chunks)',
+            'calories': 82,
+            'protein_g': 0.9,
+            'carbs_g': 21.6,
+            'fat_g': 0.2,
+            'fiber_g': 2.3
+        },
+        'mango': {
+            'food_name': 'Mango (1 cup, sliced)',
+            'calories': 99,
+            'protein_g': 1.4,
+            'carbs_g': 24.7,
+            'fat_g': 0.6,
+            'fiber_g': 2.6
+        },
+        'avocado': {
+            'food_name': 'Avocado (1/2 fruit)',
+            'calories': 160,
+            'protein_g': 2.0,
+            'carbs_g': 8.5,
+            'fat_g': 14.7,
+            'fiber_g': 6.7
+        },
+        
+        # Vegetables
+        'broccoli': {
+            'food_name': 'Broccoli (1 cup, chopped)',
+            'calories': 55,
+            'protein_g': 3.7,
+            'carbs_g': 11.2,
+            'fat_g': 0.6,
+            'fiber_g': 5.1
+        },
+        'spinach': {
+            'food_name': 'Spinach (1 cup, raw)',
+            'calories': 7,
+            'protein_g': 0.9,
+            'carbs_g': 1.1,
+            'fat_g': 0.1,
+            'fiber_g': 0.7
+        },
+        'kale': {
+            'food_name': 'Kale (1 cup, chopped)',
+            'calories': 33,
+            'protein_g': 2.9,
+            'carbs_g': 6.7,
+            'fat_g': 0.5,
+            'fiber_g': 1.3
+        },
+        'carrot': {
+            'food_name': 'Carrot (1 medium)',
+            'calories': 25,
+            'protein_g': 0.6,
+            'carbs_g': 5.8,
+            'fat_g': 0.1,
+            'fiber_g': 1.7
+        },
+        'bell pepper': {
+            'food_name': 'Bell Pepper (1 medium)',
+            'calories': 30,
+            'protein_g': 1.0,
+            'carbs_g': 7.0,
+            'fat_g': 0.2,
+            'fiber_g': 2.5
+        },
+        'onion': {
+            'food_name': 'Onion (1 medium)',
+            'calories': 44,
+            'protein_g': 1.2,
+            'carbs_g': 10.3,
+            'fat_g': 0.1,
+            'fiber_g': 1.9
+        },
+        'tomato': {
+            'food_name': 'Tomato (1 medium)',
+            'calories': 22,
+            'protein_g': 1.1,
+            'carbs_g': 4.8,
+            'fat_g': 0.2,
+            'fiber_g': 1.5
+        },
+        'potato': {
+            'food_name': 'Potato (1 medium, baked)',
+            'calories': 161,
+            'protein_g': 4.3,
+            'carbs_g': 36.6,
+            'fat_g': 0.2,
+            'fiber_g': 3.8
+        },
+        'sweet potato': {
+            'food_name': 'Sweet Potato (1 medium, baked)',
+            'calories': 103,
+            'protein_g': 2.3,
+            'carbs_g': 23.6,
+            'fat_g': 0.2,
+            'fiber_g': 3.8
+        },
+        'cucumber': {
+            'food_name': 'Cucumber (1/2 cup, sliced)',
+            'calories': 8,
+            'protein_g': 0.3,
+            'carbs_g': 1.9,
+            'fat_g': 0.1,
+            'fiber_g': 0.3
+        },
+        
+        # Protein Sources
         'chicken breast': {
-            'food_name': 'Chicken Breast',
+            'food_name': 'Chicken Breast (3 oz, cooked)',
             'calories': 165,
             'protein_g': 31.0,
             'carbs_g': 0.0,
             'fat_g': 3.6,
             'fiber_g': 0.0
         },
+        'chicken thigh': {
+            'food_name': 'Chicken Thigh (3 oz, cooked)',
+            'calories': 209,
+            'protein_g': 24.7,
+            'carbs_g': 0.0,
+            'fat_g': 11.2,
+            'fiber_g': 0.0
+        },
+        'beef': {
+            'food_name': 'Beef (3 oz, lean, cooked)',
+            'calories': 213,
+            'protein_g': 26.0,
+            'carbs_g': 0.0,
+            'fat_g': 11.8,
+            'fiber_g': 0.0
+        },
+        'ground beef': {
+            'food_name': 'Ground Beef (3 oz, 85% lean, cooked)',
+            'calories': 218,
+            'protein_g': 24.0,
+            'carbs_g': 0.0,
+            'fat_g': 13.0,
+            'fiber_g': 0.0
+        },
+        'pork': {
+            'food_name': 'Pork Chop (3 oz, cooked)',
+            'calories': 198,
+            'protein_g': 26.0,
+            'carbs_g': 0.0,
+            'fat_g': 9.9,
+            'fiber_g': 0.0
+        },
+        'salmon': {
+            'food_name': 'Salmon (3 oz, cooked)',
+            'calories': 175,
+            'protein_g': 18.8,
+            'carbs_g': 0.0,
+            'fat_g': 10.5,
+            'fiber_g': 0.0
+        },
+        'tuna': {
+            'food_name': 'Tuna (3 oz, canned in water)',
+            'calories': 73,
+            'protein_g': 16.5,
+            'carbs_g': 0.0,
+            'fat_g': 0.8,
+            'fiber_g': 0.0
+        },
+        'shrimp': {
+            'food_name': 'Shrimp (3 oz, cooked)',
+            'calories': 84,
+            'protein_g': 18.0,
+            'carbs_g': 0.0,
+            'fat_g': 0.9,
+            'fiber_g': 0.0
+        },
+        'tofu': {
+            'food_name': 'Tofu (1/2 cup)',
+            'calories': 94,
+            'protein_g': 10.0,
+            'carbs_g': 2.3,
+            'fat_g': 5.9,
+            'fiber_g': 0.5
+        },
+        'tempeh': {
+            'food_name': 'Tempeh (3 oz)',
+            'calories': 160,
+            'protein_g': 15.0,
+            'carbs_g': 7.0,
+            'fat_g': 9.0,
+            'fiber_g': 4.8
+        },
+        'lentils': {
+            'food_name': 'Lentils (1/2 cup, cooked)',
+            'calories': 115,
+            'protein_g': 9.0,
+            'carbs_g': 20.0,
+            'fat_g': 0.4,
+            'fiber_g': 7.8
+        },
+        'chickpeas': {
+            'food_name': 'Chickpeas (1/2 cup, cooked)',
+            'calories': 134,
+            'protein_g': 7.0,
+            'carbs_g': 22.5,
+            'fat_g': 2.1,
+            'fiber_g': 6.2
+        },
+        'black beans': {
+            'food_name': 'Black Beans (1/2 cup, cooked)',
+            'calories': 114,
+            'protein_g': 7.6,
+            'carbs_g': 20.4,
+            'fat_g': 0.5,
+            'fiber_g': 7.5
+        },
+        
+        # Dairy & Eggs
         'egg': {
-            'food_name': 'Egg',
+            'food_name': 'Egg (1 large)',
             'calories': 72,
             'protein_g': 6.3,
             'carbs_g': 0.4,
             'fat_g': 5.0,
             'fiber_g': 0.0
         },
-        'rice': {
-            'food_name': 'Rice (cooked)',
-            'calories': 130,
-            'protein_g': 2.7,
-            'carbs_g': 28.2,
-            'fat_g': 0.3,
-            'fiber_g': 0.6
-        },
-        'bread': {
-            'food_name': 'Bread (white)',
-            'calories': 75,
-            'protein_g': 2.6,
-            'carbs_g': 13.8,
-            'fat_g': 1.0,
-            'fiber_g': 0.8
-        },
         'milk': {
-            'food_name': 'Milk (whole)',
+            'food_name': 'Milk (1 cup, whole)',
             'calories': 149,
             'protein_g': 7.7,
             'carbs_g': 11.7,
             'fat_g': 8.0,
             'fiber_g': 0.0
         },
-        'salmon': {
-            'food_name': 'Salmon',
-            'calories': 208,
-            'protein_g': 22.1,
-            'carbs_g': 0.0,
-            'fat_g': 13.4,
+        'skim milk': {
+            'food_name': 'Skim Milk (1 cup)',
+            'calories': 83,
+            'protein_g': 8.3,
+            'carbs_g': 12.2,
+            'fat_g': 0.2,
             'fiber_g': 0.0
         },
-        'avocado': {
-            'food_name': 'Avocado',
-            'calories': 240,
-            'protein_g': 3.0,
-            'carbs_g': 12.8,
-            'fat_g': 22.0,
-            'fiber_g': 10.0
+        'yogurt': {
+            'food_name': 'Greek Yogurt (1 cup, plain)',
+            'calories': 130,
+            'protein_g': 22.0,
+            'carbs_g': 9.0,
+            'fat_g': 0.0,
+            'fiber_g': 0.0
         },
-        'broccoli': {
-            'food_name': 'Broccoli',
+        'cheese': {
+            'food_name': 'Cheddar Cheese (1 oz)',
+            'calories': 113,
+            'protein_g': 7.0,
+            'carbs_g': 0.4,
+            'fat_g': 9.3,
+            'fiber_g': 0.0
+        },
+        'cottage cheese': {
+            'food_name': 'Cottage Cheese (1/2 cup)',
+            'calories': 110,
+            'protein_g': 12.5,
+            'carbs_g': 3.5,
+            'fat_g': 4.5,
+            'fiber_g': 0.0
+        },
+        
+        # Grains & Cereals
+        'rice': {
+            'food_name': 'White Rice (1/2 cup, cooked)',
+            'calories': 121,
+            'protein_g': 2.5,
+            'carbs_g': 26.5,
+            'fat_g': 0.3,
+            'fiber_g': 0.3
+        },
+        'brown rice': {
+            'food_name': 'Brown Rice (1/2 cup, cooked)',
+            'calories': 109,
+            'protein_g': 2.3,
+            'carbs_g': 22.9,
+            'fat_g': 0.9,
+            'fiber_g': 1.8
+        },
+        'quinoa': {
+            'food_name': 'Quinoa (1/2 cup, cooked)',
+            'calories': 111,
+            'protein_g': 4.1,
+            'carbs_g': 19.7,
+            'fat_g': 1.8,
+            'fiber_g': 2.6
+        },
+        'bread': {
+            'food_name': 'White Bread (1 slice)',
+            'calories': 75,
+            'protein_g': 2.6,
+            'carbs_g': 13.8,
+            'fat_g': 1.0,
+            'fiber_g': 0.8
+        },
+        'whole wheat bread': {
+            'food_name': 'Whole Wheat Bread (1 slice)',
+            'calories': 81,
+            'protein_g': 4.0,
+            'carbs_g': 15.0,
+            'fat_g': 1.1,
+            'fiber_g': 2.0
+        },
+        'pasta': {
+            'food_name': 'Pasta (1 cup, cooked)',
+            'calories': 221,
+            'protein_g': 8.1,
+            'carbs_g': 43.2,
+            'fat_g': 1.3,
+            'fiber_g': 2.5
+        },
+        'whole wheat pasta': {
+            'food_name': 'Whole Wheat Pasta (1 cup, cooked)',
+            'calories': 174,
+            'protein_g': 7.5,
+            'carbs_g': 37.2,
+            'fat_g': 0.8,
+            'fiber_g': 6.3
+        },
+        'oats': {
+            'food_name': 'Oatmeal (1/2 cup, dry)',
+            'calories': 150,
+            'protein_g': 5.0,
+            'carbs_g': 27.0,
+            'fat_g': 3.0,
+            'fiber_g': 4.0
+        },
+        
+        # Nuts & Seeds
+        'almonds': {
+            'food_name': 'Almonds (1 oz, 23 nuts)',
+            'calories': 164,
+            'protein_g': 6.0,
+            'carbs_g': 6.1,
+            'fat_g': 14.0,
+            'fiber_g': 3.5
+        },
+        'walnuts': {
+            'food_name': 'Walnuts (1 oz, 14 halves)',
+            'calories': 185,
+            'protein_g': 4.3,
+            'carbs_g': 3.9,
+            'fat_g': 18.5,
+            'fiber_g': 1.9
+        },
+        'peanut butter': {
+            'food_name': 'Peanut Butter (2 tbsp)',
+            'calories': 188,
+            'protein_g': 8.0,
+            'carbs_g': 6.9,
+            'fat_g': 16.0,
+            'fiber_g': 1.9
+        },
+        'chia seeds': {
+            'food_name': 'Chia Seeds (1 tbsp)',
+            'calories': 58,
+            'protein_g': 2.0,
+            'carbs_g': 5.0,
+            'fat_g': 3.0,
+            'fiber_g': 4.0
+        },
+        'flax seeds': {
+            'food_name': 'Flax Seeds (1 tbsp)',
             'calories': 55,
-            'protein_g': 3.7,
-            'carbs_g': 11.2,
-            'fat_g': 0.6,
-            'fiber_g': 5.1
+            'protein_g': 1.9,
+            'carbs_g': 3.0,
+            'fat_g': 4.3,
+            'fiber_g': 2.8
+        },
+        
+        # Oils & Fats
+        'olive oil': {
+            'food_name': 'Olive Oil (1 tbsp)',
+            'calories': 119,
+            'protein_g': 0.0,
+            'carbs_g': 0.0,
+            'fat_g': 13.5,
+            'fiber_g': 0.0
+        },
+        'coconut oil': {
+            'food_name': 'Coconut Oil (1 tbsp)',
+            'calories': 121,
+            'protein_g': 0.0,
+            'carbs_g': 0.0,
+            'fat_g': 13.6,
+            'fiber_g': 0.0
+        },
+        'butter': {
+            'food_name': 'Butter (1 tbsp)',
+            'calories': 102,
+            'protein_g': 0.1,
+            'carbs_g': 0.0,
+            'fat_g': 11.5,
+            'fiber_g': 0.0
         }
     }
     
     # Check if the query matches any of our common foods (case-insensitive)
     query_lower = query.lower().strip()
+    
+    # First, try exact matches
+    if query_lower in common_foods:
+        logging.info(f"Found exact nutrition data for: {query}")
+        return common_foods[query_lower]
+    
+    # Then try partial matches
     for food_key, nutrition in common_foods.items():
         if food_key in query_lower or query_lower in food_key:
+            logging.info(f"Found nutrition data for: {query} (matched with {food_key})")
             return nutrition
     
     # If we don't have a match, try using the Nutritionix API if credentials are available
@@ -302,6 +683,7 @@ def get_food_nutrition(query):
             # Fall through to default response
     
     # If we reach here, use a generic response based on the query
+    logging.info(f"Returning approximate nutrition data for: {query}")
     return {
         'food_name': query.capitalize(),
         'calories': 120,  # Generic average value
