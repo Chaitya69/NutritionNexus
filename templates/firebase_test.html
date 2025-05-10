@@ -114,6 +114,67 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <h2 class="h5 mt-4">Firebase Configuration</h2>
                     <pre id="firebase-config" class="bg-light p-3 mt-2">Loading...</pre>
                     
+                    <div class="mt-4 alert alert-warning">
+                        <h3 class="h6">Current Domain:</h3>
+                        <p id="current-domain">Loading...</p>
+                        <p class="mb-0"><strong>Important:</strong> Add exactly this domain to Firebase Console > Authentication > Settings > Authorized Domains</p>
+                    </div>
+                    
+                    <!-- Domain Setup Guide -->
+                    <div class="mt-3 card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h3 class="h6 mb-0">Quick Domain Authorization Guide</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="h6">Step 1: Go to Firebase Console</h4>
+                                    <a href="https://console.firebase.google.com/" target="_blank" class="btn btn-sm btn-outline-primary mb-2">
+                                        Open Firebase Console
+                                    </a>
+                                    <p class="small text-muted">Select your project: <span class="text-monospace">{{ config.get('FIREBASE_PROJECT_ID') }}</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="h6">Step 2: Open Authentication Settings</h4>
+                                    <p class="small">Navigate to: Authentication → Settings → Authorized domains</p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h4 class="h6">Step 3: Add Your Domain</h4>
+                                    <p class="small">Click "Add Domain" and enter:</p>
+                                    <div class="alert alert-secondary small p-2">
+                                        <span id="copy-domain">{{ request.host }}</span>
+                                        <button class="btn btn-sm btn-outline-secondary py-0 px-1 ml-2" 
+                                                onclick="navigator.clipboard.writeText(document.getElementById('copy-domain').textContent); this.textContent='✓ Copied'">
+                                            Copy
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="h6">Step 4: Verify Google Authentication</h4>
+                                    <p class="small">Make sure Google provider is enabled:</p>
+                                    <p class="small">Authentication → Sign-in method → Google → Enable</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        // Display current domain information
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const domainElement = document.getElementById('current-domain');
+                            if (domainElement) {
+                                const currentDomain = window.location.hostname;
+                                const fullUrl = window.location.origin;
+                                domainElement.innerHTML = `
+                                    <strong>Hostname to add:</strong> ${currentDomain}<br>
+                                    <strong>Full origin:</strong> ${fullUrl}
+                                `;
+                            }
+                        });
+                    </script>
+                    
                     <div id="auth-providers" class="mt-4"></div>
                     
                     <div id="auth-result" class="mt-3"></div>

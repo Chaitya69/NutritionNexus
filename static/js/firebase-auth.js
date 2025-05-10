@@ -76,24 +76,92 @@ function signInWithGoogle() {
             prompt: 'select_account'
         });
         
-        // Log info before redirect
-        console.log('Starting Google sign-in redirect...');
+        // Update sign-in status
+        const signInMethodElement = document.createElement('div');
+        signInMethodElement.className = 'alert alert-info mt-2';
+        signInMethodElement.textContent = 'Attempting authentication...';
+        
+        if (errorElement) {
+            errorElement.innerHTML = '';
+            errorElement.appendChild(signInMethodElement);
+            errorElement.style.display = 'block';
+        }
+        
+        // Try popup first (works better on some browsers)
+        console.log('Attempting Google sign-in with popup...');
         console.log('Auth domain:', firebaseConfig.authDomain);
         
-        // Start sign in process
-        firebase.auth().signInWithRedirect(provider)
-            .catch(error => {
-                console.error('Immediate redirect error:', error);
-                if (errorElement) {
-                    errorElement.textContent = 'Sign-in error: ' + error.message;
-                    errorElement.style.display = 'block';
+        // Try using popup first (often works better)
+        firebase.auth().signInWithPopup(provider)
+            .then((result) => {
+                console.log('Popup sign-in successful!');
+                // This is handled by our redirect handler
+                signInMethodElement.textContent = 'Authentication successful! Redirecting...';
+                signInMethodElement.className = 'alert alert-success mt-2';
+            })
+            .catch((error) => {
+                console.log('Popup sign-in failed, trying redirect...', error.code);
+                
+                // Show status update
+                signInMethodElement.textContent = 'Popup authentication failed. Trying redirect method...';
+                
+                // Check specific errors
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+                    // If popup is blocked, try redirect method instead
+                    console.log('Starting Google sign-in redirect instead...');
+                    firebase.auth().signInWithRedirect(provider)
+                        .catch(redirectError => {
+                            console.error('Redirect error:', redirectError);
+                            if (errorElement) {
+                                errorElement.innerHTML = `
+                                    <div class="alert alert-danger">
+                                        <p><strong>Authentication Error:</strong> ${redirectError.message}</p>
+                                        <p>Code: ${redirectError.code || 'unknown'}</p>
+                                        <hr>
+                                        <p>Please make sure your domain is authorized in Firebase.</p>
+                                        <a href="/firebase_test" class="btn btn-sm btn-outline-primary">
+                                            Run Firebase Configuration Test
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                        });
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    // Unauthorized domain is a common issue
+                    if (errorElement) {
+                        const domain = window.location.hostname;
+                        errorElement.innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><strong>Domain Not Authorized:</strong> ${error.message}</p>
+                                <hr>
+                                <p>Your domain <code>${domain}</code> must be added to Firebase.</p>
+                                <p>Go to Firebase Console → Authentication → Settings → Authorized Domains</p>
+                                <a href="/firebase_test" class="btn btn-sm btn-outline-primary">
+                                    Run Firebase Configuration Test
+                                </a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    // Other errors
+                    if (errorElement) {
+                        errorElement.innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><strong>Authentication Error:</strong> ${error.message}</p>
+                                <p>Code: ${error.code || 'unknown'}</p>
+                            </div>
+                        `;
+                    }
                 }
             });
     } catch (error) {
         console.error('Failed to initialize Google sign-in:', error);
         if (errorElement) {
-            errorElement.textContent = 'Failed to start sign-in: ' + error.message;
-            errorElement.style.display = 'block';
+            errorElement.innerHTML = `
+                <div class="alert alert-danger">
+                    <p><strong>Initialization Error:</strong> ${error.message}</p>
+                </div>
+            `;
         }
     }
 }

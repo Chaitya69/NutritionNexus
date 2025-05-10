@@ -48,6 +48,21 @@
 
     {% if config.get('FIREBASE_API_KEY') %}
     <div class="mt-4 text-center">
+        <!-- Firebase domain info alert -->
+        <div class="alert alert-warning alert-dismissible fade show mb-4 text-left" role="alert">
+            <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Important Firebase Setup</h6>
+            <p class="small mb-1">For Google Sign-In to work, add this domain to Firebase:</p>
+            <p class="small mb-0 font-weight-bold">
+                {{ request.host }}
+            </p>
+            <p class="small mt-2 mb-0">
+                <a href="{{ url_for('firebase_test') }}" class="alert-link">View detailed setup instructions →</a>
+            </p>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
         <div id="firebase-error" class="alert alert-danger" style="display: none;"></div>
         <p class="text-muted">Or sign in with</p>
         <button id="login-with-google" class="btn btn-outline-secondary">
