@@ -272,7 +272,7 @@ wheels = [
 
 [[package]]
 name = "firebase-admin"
-version = "6.8.0"
+version = "6.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachecontrol" },
@@ -282,9 +282,9 @@ dependencies = [
     { name = "google-cloud-storage" },
     { name = "pyjwt", extra = ["crypto"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/d8/4230b0770a2cd9d4de53bb1f0a17fa204716a9b271bc3be1fb109dfb8b9d/firebase_admin-6.8.0.tar.gz", hash = "sha256:24a9870219cfd6578586357858e00758aea26a39df74c53be5d803f5654d883e", size = 112211 }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/0b/9c2a1827bbba8f21fb9bc6c08231b6891071f805aea0727489f3d4c9492f/firebase_admin-6.2.0.tar.gz", hash = "sha256:e3b334d18bbea039f2f3e8a792ad6870d2a7cc79a13ed10659dedd63f5b475e4", size = 94523 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/e4/a4fea0c28787e6fadfdc6bf76f497c8136fdbb915f2942de1070918c1202/firebase_admin-6.8.0-py3-none-any.whl", hash = "sha256:84d5fd82859c4d27b63338c3fe9724667dfe400aa2fd9fef0efffbf6e23bca82", size = 134188 },
+    { url = "https://files.pythonhosted.org/packages/02/f0/e259b1345aa79e73a594cb0df82793965614fccb7516a930192d8690fcd7/firebase_admin-6.2.0-py3-none-any.whl", hash = "sha256:e3c42351fb6194d7279a6fd9209a947005fb4ee7e9037d19762e6cb3da4a82e1", size = 119891 },
 ]
 
 [[package]]
@@ -903,6 +903,15 @@ wheels = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/fa/fbf4001037904031639e6bfbfc02badfc7e12f137a8afa254df6c4c8a670/oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918", size = 177352 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/80/cab10959dc1faead58dc8384a781dfbf93cb4d33d50988f7a69f1b7c9bbe/oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca", size = 151688 },
+]
+
+[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1011,6 +1020,12 @@ wheels = [
 ]
 
 [[package]]
+name = "pycrypto"
+version = "2.6.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/db/645aa9af249f059cc3a368b118de33889219e0362141e75d4eaf6f80f163/pycrypto-2.6.1.tar.gz", hash = "sha256:f2ce1e989b272cfcb677616763e0a2e7ec659effa67a88aa92b3a65528f60a3c", size = 446240 }
+
+[[package]]
 name = "pycryptodome"
 version = "3.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1070,6 +1085,24 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bb/22/f1129e69d94ffff626bdb5c835506b3a5b4f3d070f17ea295e12c2c6f60f/pyparsing-3.2.3.tar.gz", hash = "sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be", size = 1088608 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/e7/df2285f3d08fee213f2d041540fa4fc9ca6c2d44cf36d3a035bf2a8d2bcc/pyparsing-3.2.3-py3-none-any.whl", hash = "sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf", size = 111120 },
+]
+
+[[package]]
+name = "pyrebase"
+version = "3.0.18"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "gcloud" },
+    { name = "oauth2client" },
+    { name = "pycrypto" },
+    { name = "python-jwt" },
+    { name = "requests" },
+    { name = "requests-toolbelt" },
+    { name = "sseclient" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ab/0f/f9d0270c99227bbf6b8a9a2ace2145115bcad5a37e611d2ad90e030787d9/Pyrebase-3.0.18.tar.gz", hash = "sha256:91bbd2141535b095b9a28329f832a2bacde015316c4c12f6d6905d9d16ddb6fb", size = 5549 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8c/ba/7f0d4ef12c5d7897b31d389d25596f9a1bfcbf32a65983eb55d0b965768b/Pyrebase-3.0.18-py3-none-any.whl", hash = "sha256:cbd092583b235499a890f075f0c79640dfd2c6ba79a8646c4e7ea185b1082b30", size = 6973 },
 ]
 
 [[package]]
@@ -1190,8 +1223,11 @@ dependencies = [
     { name = "flask-sqlalchemy" },
     { name = "flask-wtf" },
     { name = "gunicorn" },
+    { name = "oauthlib" },
     { name = "psycopg2-binary" },
+    { name = "pycryptodome" },
     { name = "pymongo" },
+    { name = "pyrebase" },
     { name = "pyrebase4" },
     { name = "requests" },
     { name = "trafilatura" },
@@ -1203,15 +1239,18 @@ dependencies = [
 requires-dist = [
     { name = "bson", specifier = ">=0.5.10" },
     { name = "email-validator", specifier = ">=2.2.0" },
-    { name = "firebase-admin", specifier = ">=6.8.0" },
+    { name = "firebase-admin", specifier = "==6.2.0" },
     { name = "flask", specifier = ">=3.1.0" },
     { name = "flask-login", specifier = ">=0.6.3" },
     { name = "flask-pymongo", specifier = "==2.3.0" },
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "oauthlib", specifier = ">=3.2.2" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "pycryptodome", specifier = ">=3.22.0" },
     { name = "pymongo", specifier = "==4.4.0" },
+    { name = "pyrebase", specifier = ">=3.0.18" },
     { name = "pyrebase4", specifier = ">=4.8.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "trafilatura", specifier = ">=2.0.0" },
@@ -1303,6 +1342,16 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/cb/f38c61f7f2fd4d10494c1c135ff6a6ddb63508d0b47bccccd93670637309/sqlalchemy-2.0.40-cp313-cp313-win_amd64.whl", hash = "sha256:641ee2e0834812d657862f3a7de95e0048bdcb6c55496f39c6fa3d435f6ac6ad", size = 2104564 },
     { url = "https://files.pythonhosted.org/packages/d1/7c/5fc8e802e7506fe8b55a03a2e1dab156eae205c91bee46305755e086d2e2/sqlalchemy-2.0.40-py3-none-any.whl", hash = "sha256:32587e2e1e359276957e6fe5dad089758bc042a971a8a09ae8ecf7a8fe23d07a", size = 1903894 },
 ]
+
+[[package]]
+name = "sseclient"
+version = "0.0.27"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cf/6c/fa601216344952be8f9a51a3f49b4274bbbc58bd395f87f67f6131726358/sseclient-0.0.27.tar.gz", hash = "sha256:b2fe534dcb33b1d3faad13d60c5a7c718e28f85987f2a034ecf5ec279918c11c", size = 7465 }
 
 [[package]]
 name = "tld"

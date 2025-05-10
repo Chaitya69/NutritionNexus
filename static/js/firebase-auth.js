@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         firebaseConfig = await response.json();
         
+        // Log the configuration (without sensitive data) for debugging
+        console.log('Firebase configuration loaded successfully:', {
+            authDomain: firebaseConfig.authDomain,
+            projectId: firebaseConfig.projectId,
+            hasApiKey: !!firebaseConfig.apiKey,
+            hasAppId: !!firebaseConfig.appId
+        });
+        
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         
@@ -51,8 +59,43 @@ function setupFirebaseUI() {
  * Sign in with Google using Firebase
  */
 function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithRedirect(provider);
+    const errorElement = document.getElementById('firebase-error');
+    if (errorElement) {
+        errorElement.style.display = 'none';
+    }
+
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // Add scopes for permissions
+        provider.addScope('email');
+        provider.addScope('profile');
+        
+        // Set custom parameters
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+        
+        // Log info before redirect
+        console.log('Starting Google sign-in redirect...');
+        console.log('Auth domain:', firebaseConfig.authDomain);
+        
+        // Start sign in process
+        firebase.auth().signInWithRedirect(provider)
+            .catch(error => {
+                console.error('Immediate redirect error:', error);
+                if (errorElement) {
+                    errorElement.textContent = 'Sign-in error: ' + error.message;
+                    errorElement.style.display = 'block';
+                }
+            });
+    } catch (error) {
+        console.error('Failed to initialize Google sign-in:', error);
+        if (errorElement) {
+            errorElement.textContent = 'Failed to start sign-in: ' + error.message;
+            errorElement.style.display = 'block';
+        }
+    }
 }
 
 /**
@@ -60,35 +103,97 @@ function signInWithGoogle() {
  */
 async function handleRedirectResult() {
     try {
+        console.log('Checking Firebase redirect result...');
         const result = await firebase.auth().getRedirectResult();
         
         if (result.user) {
             // User is signed in
+            console.log('Firebase user authenticated, sending to server...');
             const user = result.user;
             
-            // Get the ID token
-            const idToken = await user.getIdToken();
+            // Extract user information to send to server
+            const userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL
+            };
             
-            // Send the token to the server
+            // Log the user data for debugging (without sensitive information)
+            console.log('User authenticated:', {
+                uid: userData.uid ? 'present' : 'missing',
+                email: userData.email ? 'present' : 'missing',
+                displayName: userData.displayName || 'not provided',
+                photoAvailable: !!userData.photoURL
+            });
+            
+            // Send user data to the server
             const response = await fetch('/auth/firebase/callback', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ idToken }),
+                body: JSON.stringify({ user: userData }),
             });
             
             const data = await response.json();
             
             if (data.success && data.redirect) {
                 // Redirect to the dashboard or specified page
+                console.log('Redirecting to:', data.redirect);
                 window.location.href = data.redirect;
             } else {
                 console.error('Server authentication failed:', data.error);
+                // Display error to user
+                const errorElement = document.getElementById('firebase-error');
+                if (errorElement) {
+                    errorElement.textContent = 'Authentication failed: ' + (data.error || 'Unknown error');
+                    errorElement.style.display = 'block';
+                }
             }
         }
     } catch (error) {
         console.error('Firebase redirect result error:', error);
+        
+        // Display detailed error to user
+        const errorElement = document.getElementById('firebase-error');
+        if (errorElement) {
+            let errorMessage = 'Authentication error: ' + error.message;
+            
+            // Provide more helpful messages for common Firebase errors
+            if (error.code) {
+                switch (error.code) {
+                    case 'auth/unauthorized-domain':
+                        errorMessage = 'Error: This domain is not authorized for Firebase authentication. Please add your domain to the Firebase Console under Authentication > Settings > Authorized Domains.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Error: Google authentication is not enabled in the Firebase Console. Please enable it under Authentication > Sign-in Methods.';
+                        break;
+                    case 'auth/popup-blocked':
+                        errorMessage = 'Error: Authentication popup was blocked. Please allow popups for this website.';
+                        break;
+                    case 'auth/cancelled-popup-request':
+                        errorMessage = 'Authentication was cancelled.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Network error. Please check your internet connection and try again.';
+                        break;
+                }
+            }
+            
+            errorElement.textContent = errorMessage;
+            errorElement.style.display = 'block';
+            
+            // Add a link to the Firebase test page for debugging
+            if (error.code === 'auth/unauthorized-domain') {
+                const testLink = document.createElement('a');
+                testLink.href = '/firebase_test';
+                testLink.textContent = 'Run Firebase Configuration Test';
+                testLink.className = 'btn btn-sm btn-outline-primary mt-2';
+                errorElement.appendChild(document.createElement('br'));
+                errorElement.appendChild(testLink);
+            }
+        }
     }
 }
 

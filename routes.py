@@ -4,6 +4,7 @@ from app import app, mongo
 from models import User, NutritionRecommendation
 from forms import LoginForm, RegistrationForm, ProfileForm, NutritionQueryForm
 from utils import generate_nutrition_recommendation, get_food_nutrition
+from firebase_config import check_firebase_config
 import logging
 from datetime import datetime
 
@@ -174,4 +175,13 @@ def api_food_nutrition():
         }
 
 
+@app.route('/firebase_test')
+def firebase_test():
+    """Test page for Firebase configuration and authentication"""
+    has_firebase = check_firebase_config()
+    
+    if not has_firebase:
+        flash('Firebase configuration is incomplete. Some features may not work.', 'warning')
+    
+    return render_template('firebase_test.html')
 

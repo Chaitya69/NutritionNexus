@@ -3,10 +3,10 @@
 {% block title %}Register - NutriGuide{% endblock %}
 
 {% block scripts %}
-<!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<!-- Firebase App (the core Firebase SDK) - using v8 API for compatibility -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <!-- Add Firebase Authentication -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <!-- Custom Firebase Authentication Script -->
 <script src="{{ url_for('static', filename='js/firebase-auth.js') }}"></script>
 {% endblock %}
@@ -69,6 +69,7 @@
 
     {% if config.get('FIREBASE_API_KEY') %}
     <div class="mt-4 text-center">
+        <div id="firebase-error" class="alert alert-danger" style="display: none;"></div>
         <p class="text-muted">Or sign up with</p>
         <button id="login-with-google" class="btn btn-outline-secondary">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
