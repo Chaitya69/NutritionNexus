@@ -93,11 +93,64 @@ function signInWithGoogle() {
         
         // Try using popup first (often works better)
         firebase.auth().signInWithPopup(provider)
-            .then((result) => {
+            .then(async (result) => {
                 console.log('Popup sign-in successful!');
-                // This is handled by our redirect handler
-                signInMethodElement.textContent = 'Authentication successful! Redirecting...';
+                signInMethodElement.textContent = 'Authentication successful! Sending to server...';
                 signInMethodElement.className = 'alert alert-success mt-2';
+                
+                // We need to manually process the popup result
+                const user = result.user;
+                
+                // Extract user information to send to server
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL
+                };
+                
+                try {
+                    // Send user data to the server
+                    const response = await fetch('/auth/firebase/callback', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            user: userData,
+                            token: await user.getIdToken(),
+                            provider: {
+                                id: result.credential?.providerId || 'google.com',
+                                token: result.credential?.accessToken || null
+                            } 
+                        }),
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.redirect) {
+                        signInMethodElement.textContent = 'Authentication confirmed! Redirecting...';
+                        console.log('Server authentication successful, redirecting to:', data.redirect);
+                        window.location.href = data.redirect;
+                    } else {
+                        throw new Error(data.error || 'Unknown server error');
+                    }
+                } catch (serverError) {
+                    console.error('Server communication error:', serverError);
+                    signInMethodElement.textContent = 'Error connecting to server. Please try again.';
+                    signInMethodElement.className = 'alert alert-danger mt-2';
+                    errorElement.innerHTML = `
+                        <div class="alert alert-danger mt-2">
+                            <p><strong>Server Communication Error:</strong> ${serverError.message}</p>
+                            <hr>
+                            <p>Authentication was successful on Google's side, but we couldn't log you in.</p>
+                        </div>
+                    `;
+                }
             })
             .catch((error) => {
                 console.log('Popup sign-in failed, trying redirect...', error.code);

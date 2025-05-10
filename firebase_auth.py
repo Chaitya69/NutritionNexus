@@ -103,6 +103,7 @@ def firebase_auth_callback():
     if not check_firebase_config():
         current_app.logger.error("Firebase configuration incomplete")
         return jsonify({
+            "success": False,
             "error": "Firebase configuration is incomplete. Please set the required environment variables."
         }), 500
     
@@ -117,6 +118,12 @@ def firebase_auth_callback():
                 "error": "No data provided"
             }), 400
         
+        # Log the data structure for debugging (excluding sensitive info)
+        current_app.logger.debug(f"Auth callback data keys: {list(data.keys())}")
+        if 'user' in data:
+            user_keys = list(data['user'].keys())
+            current_app.logger.debug(f"User data keys: {user_keys}")
+        
         # Extract user information directly from the client-side auth result
         # This is a simplified approach that works when we don't have the Admin SDK fully initialized
         user_info = data.get('user', {})
@@ -125,10 +132,10 @@ def firebase_auth_callback():
         uid = user_info.get('uid')
         
         if not email or not uid:
-            current_app.logger.warning("Missing essential user information (email or uid)")
+            current_app.logger.warning(f"Missing essential user information (email: {bool(email)}, uid: {bool(uid)})")
             return jsonify({
                 "success": False,
-                "error": "Missing essential user information"
+                "error": "Missing essential user information (email or user ID)"
             }), 400
         
         current_app.logger.info(f"Processing Firebase authentication for email: {email}")
@@ -141,18 +148,33 @@ def firebase_auth_callback():
             username = display_name or email.split('@')[0]
             current_app.logger.info(f"Creating new user with email: {email}, username: {username}")
             
-            user = User.create_firebase_user({
-                'uid': uid,
-                'email': email,
-                'username': username,
-                'display_name': display_name
-            })
-            current_app.logger.info(f"Created new user: {email}")
+            try:
+                user = User.create_firebase_user({
+                    'uid': uid,
+                    'email': email,
+                    'username': username,
+                    'display_name': display_name
+                })
+                current_app.logger.info(f"Created new user: {email}")
+            except Exception as user_create_error:
+                current_app.logger.error(f"Failed to create user: {str(user_create_error)}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Failed to create user account: {str(user_create_error)}"
+                }), 500
         else:
             current_app.logger.info(f"Found existing user: {email}")
         
         # Log in the user
-        login_user(user)
+        try:
+            login_user(user)
+            current_app.logger.info(f"User logged in successfully: {email}")
+        except Exception as login_error:
+            current_app.logger.error(f"Failed to log in user: {str(login_error)}")
+            return jsonify({
+                "success": False,
+                "error": f"Failed to log in: {str(login_error)}"
+            }), 500
         
         return jsonify({
             "success": True,
@@ -161,7 +183,10 @@ def firebase_auth_callback():
     
     except Exception as e:
         current_app.logger.error(f"Firebase authentication error: {str(e)}")
-        return jsonify({
+        # Return a more detailed error response
+        error_info = {
             "success": False,
-            "error": str(e)
-        }), 400
+            "error": str(e),
+            "error_type": e.__class__.__name__,
+        }
+        return jsonify(error_info), 400
