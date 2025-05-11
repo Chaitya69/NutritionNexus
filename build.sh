@@ -40,9 +40,12 @@ pip install firebase-admin==6.2.0
 
 # Install MongoDB-related packages
 echo "Installing MongoDB dependencies..."
+# Remove standalone bson if it exists (it conflicts with pymongo's bson module)
+pip uninstall -y bson
+# Install pymongo first, which includes its own bson module
 pip install pymongo==4.4.0
 pip install flask-pymongo==2.3.0
-pip install bson==0.5.10
+# Do NOT install standalone bson package
 
 # Install remaining packages
 echo "Installing remaining dependencies..."
